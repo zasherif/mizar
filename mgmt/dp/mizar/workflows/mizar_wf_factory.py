@@ -29,6 +29,7 @@ from dp.mizar.workflows.endpoints.bootstrap import *
 from dp.mizar.workflows.endpoints.create import *
 from dp.mizar.workflows.endpoints.provisioned import *
 from dp.mizar.workflows.endpoints.delete import *
+from dp.mizar.workflows.endpoints.deprovisioned import *
 
 class MizarWorkflowFactory():
 
@@ -85,3 +86,6 @@ class MizarWorkflowFactory():
 
 	def EndpointProvisioned(self, param):
 		return EndpointProvisioned(param=param)
+
+	def EndpointDelete(self, param):
+		return EndpointDelete(param=param)

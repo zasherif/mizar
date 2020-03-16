@@ -44,6 +44,9 @@ class EndpointOperator(object):
 	def store_update(self, ep):
 		self.store.update_ep(ep)
 
+	def store_delete(self, ep):
+		self.store.delete_ep(ep.name)
+
 	def on_endpoint_delete(self, body, spec, **kwargs):
 		logger.info("on_endpoint_delete {}".format(spec))
 
@@ -61,3 +64,8 @@ class EndpointOperator(object):
 		eps = self.store.get_eps_in_net(bouncer.net)
 		for ep in eps:
 			ep.update_bouncers(set([bouncer]))
+
+	def set_endpoint_deprovisioned(self, ep):
+		ep.set_status(OBJ_STATUS.ep_status_deprovisioned)
+		ep.unload_transit_agent_xdp()
+		ep.update_obj()
