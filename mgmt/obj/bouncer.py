@@ -15,8 +15,9 @@ class Bouncer(object):
 		self.net = ""
 		self.ip = ""
 		self.mac = ""
-		self.eps = set()
+		self.eps = {}
 		self.dividers = set()
+		self.known_substrates = {}
 		self.status = OBJ_STATUS.bouncer_status_init
 		if spec is not None:
 			self.set_obj_spec(spec)
@@ -81,10 +82,12 @@ class Bouncer(object):
 		self.status = status
 
 	def update_eps(self, eps):
-		self.eps = self.eps.union(eps)
-		for e in eps:
-			self._update_ep(e)
-		return self
+		for ep in eps:
+			self.eps[ep.name] = ep
+		for ep in eps:
+			if ep.name not in self.known_substrates.keys():
+				self.known_substrates[ep.name] = ep.droplet_ip
+			self._update_ep(ep)
 
 	def _update_ep(self, ep):
 		self.rpc.update_ep(ep)
@@ -105,11 +108,16 @@ class Bouncer(object):
 		self.mac = droplet.mac
 
 	def delete_eps(self, eps):
-		for e in eps:
-			if e in self.eps:
-				self.eps.remove(e)
-				self._delete_ep(e)
+		for ep in eps:
+			if ep.name in self.eps.keys():
+				self.eps.pop(ep.name)
+				self._delete_ep(ep)
 
 	def _delete_ep(self, ep):
 		self.rpc.delete_ep(ep)
-		self.rpc.delete_substrate_ep(ep.droplet_ip)
+		logger.info("Len of dict :" + str(len(self.known_substrates)))
+		if ep.name in self.known_substrates.keys():
+			self.known_substrates.pop(ep.name)
+		if ep.droplet_ip not in self.known_substrates.values():
+			self.rpc.delete_substrate_ep(ep.droplet_ip)
+
