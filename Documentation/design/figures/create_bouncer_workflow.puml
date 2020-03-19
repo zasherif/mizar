@@ -1,0 +1,34 @@
+@startuml
+
+skinparam monochrome true
+autonumber
+
+database API_Server
+collections Divider_Operator
+collections Network_Operator
+collections Bouncer_Operator
+collections Endpoints_Operator
+collections Droplet_Operator
+
+Network_Operator -> API_Server: Create a Bouncer
+==Bouncer Created==
+rnote over API_Server: ==Bouncer Status Init
+Bouncer_Operator --> API_Server: Sees status Init
+Bouncer_Operator -> Droplet_Operator: Place Bouncer
+Droplet_Operator -> Droplet_Operator: Places Bouncer on Droplet
+Droplet_Operator -> Endpoints_Operator: On Bouncer Placed
+group For All Endpoints
+Endpoints_Operator -> Endpoints_Operator: Update new Bouncer with Endpoints
+Endpoints_Operator -> Endpoints_Operator: Update Endpoint with new Bouncer
+end
+Endpoints_Operator -> Divider_Operator: On Bouncer-EndpointReady
+group For All Dividers
+Divider_Operator -> Divider_Operator: Update new Bouncer with Divider
+Divider_Operator -> Divider_Operator: Update Divider with new Bouncer
+end
+Divider_Operator -> API_Server: Updates status to Provisioned
+rnote over API_Server: == Bouncer Status: Provisioned
+Bouncer_Operator --> API_Server: Sees status provisioned
+Bouncer_Operator -> Bouncer_Operator: Updates cache
+==Bouncer Ready==
+@enduml

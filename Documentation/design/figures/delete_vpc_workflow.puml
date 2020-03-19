@@ -1,0 +1,38 @@
+@startuml
+
+skinparam monochrome true
+skinparam group 10
+
+autonumber
+database API_Server
+collections CNI_Service
+collections VPC_Operator
+collections Network_Operator
+collections Divider_Operator
+collections Bouncer_Operator
+collections Endpoints_Operator
+
+==VPC Delete Requested==
+rnote over API_Server: ==VPC Status: TBD
+VPC_Operator --> API_Server: Sees VPC Status: TBD
+group For All Networks
+VPC_Operator -> Network_Operator: Delete Network
+
+rnote over API_Server: ==Network Status: Deprovisioned
+end
+Network_Operator ->  Divider_Operator: On all Network Deprovisioned
+group For All Dividers
+Divider_Operator -> API_Server: Update Divider State to Deprovisioned
+rnote over API_Server: ==Divider Status: Deprovisioned
+Divider_Operator --> API_Server: Sees Divider State Deprovisioned
+Divider_Operator -> API_Server: Deletes Divider Object
+Divider_Operator -> Divider_Operator: Update cache
+end
+Divider_Operator -> VPC_Operator: On all Divider Deprovisioned
+VPC_Operator -> API_Server: Update state of VPC to Deprovisioned
+rnote over API_Server: ==VPC State: Deprovisioned
+VPC_Operator --> API_Server: Sees VPC state Deprovisioned
+VPC_Operator -> API_Server: Deletes VPC Object
+VPC_Operator -> VPC_Operator: Update cache
+==VPC Deleted==
+@enduml
