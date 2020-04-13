@@ -60,3 +60,14 @@ async def services_opr_on_services(body, spec, **kwargs):
 	param.body = body
 	param.spec = spec
 	run_task(wffactory().k8sServiceDelete(param=param))
+
+
+@kopf.on.resume('', 'v1', 'nodes')
+@kopf.on.update('', 'v1', 'nodes')
+@kopf.on.create('', 'v1', 'nodes')
+async def builtins_opr_on_nodes(body, spec, **kwargs):
+	param = HandlerParam()
+	param.name = kwargs['name']
+	param.body = body
+	param.spec = spec
+	run_task(wffactory().k8sDropletCreate(param=param))

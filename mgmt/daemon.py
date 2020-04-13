@@ -22,3 +22,6 @@
 # THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from daemon.app import *
+
+if __name__ == '__main__':
+    serve()

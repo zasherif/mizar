@@ -27,6 +27,7 @@ import time
 import asyncio
 import os.path
 import time
+import grpc
 from common.wf_param import *
 from dp.mizar.workflows.vpcs.triggers import *
 from dp.mizar.workflows.nets.triggers import *
@@ -35,6 +36,7 @@ from dp.mizar.workflows.bouncers.triggers import *
 from dp.mizar.workflows.droplets.triggers import *
 from dp.mizar.workflows.endpoints.triggers import *
 from dp.mizar.workflows.builtins.services.triggers import *
+from daemon.droplet_service import DropletClient
 
 logger = logging.getLogger()
 LOCK: asyncio.Lock
@@ -58,6 +60,7 @@ async def on_startup(logger, **kwargs):
 	logger.info("Running luigid central scheduler pid={}!".format(pid))
 
 	start_time = time.time()
+
 
 	run_task(wffactory().DropletOperatorStart(param=param))
 	run_task(wffactory().DividerOperatorStart(param=param))

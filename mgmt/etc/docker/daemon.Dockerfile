@@ -26,5 +26,8 @@ RUN pip install pyyaml
 RUN pip install rpyc
 RUN pip install pyroute2
 RUN pip install luigi
+RUN pip install protobuf
+RUN pip install grpcio-tools
+RUN pip install futures
 COPY mgmt/ /var/mizar/mgmt/
 CMD python3 /var/mizar/mgmt/daemon.py

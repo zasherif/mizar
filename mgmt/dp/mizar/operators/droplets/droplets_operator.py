@@ -23,6 +23,7 @@ import logging
 import random
 from common.constants import *
 from common.common import *
+from daemon.droplet_service import DropletClient
 from kubernetes import client, config
 from obj.droplet import Droplet
 from obj.bouncer import Bouncer
@@ -102,4 +103,15 @@ class DropletOperator(object):
 		logger.info("*delete_droplet {}".format(name))
 		#self.ds.delete(name)
 
-
+	def create_droplet(self, ip):
+		clnt = DropletClient(ip)
+		info = clnt.GetDropletInfo()
+		logger.info("### create_droplet {}, {}".format(ip, info))
+		spec = {
+			'ip': info.ip,
+			'mac': info.mac,
+			'itf': info.itf,
+			'status': OBJ_STATUS.droplet_status_init
+		}
+		droplet = Droplet(info.name, self.obj_api, self.store, spec)
+		droplet.create_obj()

@@ -23,11 +23,13 @@ import logging
 from common.workflow import *
 from dp.mizar.operators.bouncers.bouncers_operator import *
 from dp.mizar.operators.endpoints.endpoints_operator import *
+from dp.mizar.operators.droplets.droplets_operator import *
 from dp.mizar.operators.nets.nets_operator import *
 logger = logging.getLogger()
 
 endpoints_opr = EndpointOperator()
 bouncers_opr = BouncerOperator()
+droplet_opr = DropletOperator()
 
 class k8sServiceCreate(WorkflowTask):
 
@@ -54,4 +56,20 @@ class k8sEndpointsUpdate(WorkflowTask):
 		ep = endpoints_opr.update_scaled_endpoint_backend(self.param.name, self.param.body['subsets'])
 		if ep:
 			bouncers_opr.update_endpoint_with_bouncers(ep)
+		self.finalize()
+
+class k8sDropletCreate(WorkflowTask):
+
+	def requires(self):
+		logger.info("Requires {task}".format(task=self.__class__.__name__))
+		return []
+
+	def run(self):
+		logger.info("Run {task}".format(task=self.__class__.__name__))
+		for addr in self.param.body['status']['addresses']:
+			if addr['type'] != 'InternalIP':
+				continue
+			ip = addr['address']
+			droplet_opr.create_droplet(ip)
+
 		self.finalize()

@@ -135,3 +135,6 @@ class MizarWorkflowFactory():
 
 	def k8sServiceDelete(self, param):
 		return k8sServiceDelete(param=param)
+
+	def k8sDropletCreate(self, param):
+		return k8sDropletCreate(param=param)

@@ -27,6 +27,8 @@ RUN pip install netaddr
 RUN pip install ipaddress
 RUN pip install rpyc
 RUN pip install luigi
+RUN pip install protobuf
+RUN pip install grpcio-tools
 RUN apt-get update -y
 RUN apt-get install net-tools
 COPY mgmt/ /var/mizar/mgmt/

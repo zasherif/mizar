@@ -41,6 +41,7 @@ RUN pip3 install netaddr
 RUN pip3 install ipaddress
 RUN pip3 install pyroute2
 RUN pip3 install rpyc
+RUN pip3 install futures
 RUN mkdir -p /var/mizar/
 RUN mkdir -p /opt/cni/bin
 RUN mkdir -p /etc/cni/net.d
