@@ -19,28 +19,28 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 # THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import os
-import json
-import subprocess
 import logging
+from mizar.common.workflow import *
+from mizar.dp.mizar.operators.droplets.droplets_operator import *
 
 logger = logging.getLogger()
 
-# parser for the CNI env and stdin as is, without any post-processing
+droplet_opr = DropletOperator()
 
 
-class CniParams:
-    def __init__(self, stdin):
-        self.command = os.environ.get("CNI_COMMAND")  # ADD | DEL | VERSION
-        self.container_id = os.environ.get("CNI_CONTAINERID")
-        self.netns = os.environ.get("CNI_NETNS")
-        self.interface = os.environ.get("CNI_IFNAME")
-        self.cni_path = os.environ.get("CNI_PATH")
-        self.cni_args = os.environ.get("CNI_ARGS")
+class k8sDropletCreate(WorkflowTask):
 
-        self.cni_args_dict = dict(i.split("=")
-                                  for i in self.cni_args.split(";"))
-        self.k8s_namespace = self.cni_args_dict.get('K8S_POD_NAMESPACE', None)
-        self.k8s_pod_name = self.cni_args_dict.get('K8S_POD_NAME', None)
+    def requires(self):
+        logger.info("Requires {task}".format(task=self.__class__.__name__))
+        return []
 
-        # TODO: parse 'Arktos specific' CNI_ARGS
+    def run(self):
+
+        logger.info("Run {task}".format(task=self.__class__.__name__))
+        for addr in self.param.body['status']['addresses']:
+            if addr['type'] != 'InternalIP':
+                continue
+            ip = addr['address']
+            droplet_opr.create_droplet(ip)
+
+        self.finalize()

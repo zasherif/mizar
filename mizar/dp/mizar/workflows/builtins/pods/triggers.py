@@ -19,63 +19,38 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 # THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import sys
+import kopf
 import logging
-import rpyc
-import logging
-import json
-from common.cniparams import CniParams
+import luigi
+from mizar.common.common import *
+from mizar.common.constants import *
+from mizar.common.wf_factory import *
+from mizar.common.wf_param import *
 
-logging.basicConfig(level=logging.INFO, filename='/tmp/cni.log')
-sys.stderr = open('/tmp/cni.stderr', 'a')
 logger = logging.getLogger()
 
 
-def add():
-    val, status = conn.root.add(params)
-    logger.info("server's add is {} {}".format(val, status))
-    print(val)
-    exit(status)
+@kopf.on.resume('', 'v1', 'pods')
+@kopf.on.update('', 'v1', 'pods')
+@kopf.on.create('', 'v1', 'pods')
+async def builtins_on_pod(body, spec, **kwargs):
+    param = HandlerParam()
+    param.name = kwargs['name']
+    param.body = body
+    param.spec = spec
 
+    logger.info("body: {}".format(body))
 
-def delete():
-    logger.info("Delete called")
-    conn.root.delete(params)
-    exit()
+    logger.info("metadata: ---- ")
+    for k in param.body['metadata']:
+        print("metadata k:{}, v:{}".format(
+            k, param.body['metadata'].get(k, None)))
 
+    logger.info("status: ---- ")
+    for k in param.body['status']:
+        print("status k:{}, v:{}".format(k, param.body['status'].get(k, None)))
 
-def get():
-    val, status = conn.root.get(params)
-    logger.info("server's get is {}".format(val))
-    print(val)
-    exit(status)
-
-
-def version():
-    val, status = json.dumps({'cniVersion': '0.3.1', "supportedVersions": [
-        "0.2.0", "0.3.0", "0.3.1"]}), 0
-    logger.info("server's version is {}".format(val))
-    print(val)
-    exit(status)
-
-
-def cni():
-    val = "Unsuported cni command!"
-    switcher = {
-        'ADD': add,
-        'DEL': delete,
-        'GET': get,
-        'VERSION': version
-    }
-
-    func = switcher.get(params.command, lambda: "Unsuported cni command")
-    if func:
-        func()
-    print(val)
-    exit(1)
-
-
-logger.info("CNI starting")
-params = CniParams(''.join(sys.stdin.readlines()))
-conn = rpyc.connect("localhost", 18861, config={"allow_all_attrs": True})
-cni()
+    logger.info("spec: ---- ")
+    for k in param.spec:
+        print("spec k:{}, v:{}".format(k, param.spec.get(k, None)))
+    run_workflow(wffactory().k8sPodCreate(param=param))

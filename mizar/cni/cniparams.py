@@ -19,63 +19,38 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 # THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import sys
-import logging
-import rpyc
-import logging
+import os
 import json
-from common.cniparams import CniParams
+import subprocess
+import logging
 
-logging.basicConfig(level=logging.INFO, filename='/tmp/cni.log')
-sys.stderr = open('/tmp/cni.stderr', 'a')
 logger = logging.getLogger()
 
-
-def add():
-    val, status = conn.root.add(params)
-    logger.info("server's add is {} {}".format(val, status))
-    print(val)
-    exit(status)
+# parser for the CNI env and stdin as is, without any post-processing
 
 
-def delete():
-    logger.info("Delete called")
-    conn.root.delete(params)
-    exit()
+class CniParams:
+    def __init__(self, stdin):
+        self.command = os.environ.get("CNI_COMMAND")  # ADD | DEL | VERSION
+        self.container_id = os.environ.get("CNI_CONTAINERID")
+        self.netns = os.environ.get("CNI_NETNS")
+        self.interface = os.environ.get("CNI_IFNAME")
+        self.cni_path = os.environ.get("CNI_PATH")
+        self.cni_args = os.environ.get("CNI_ARGS")
 
+        self.cni_args_dict = dict(i.split("=")
+                                  for i in self.cni_args.split(";"))
+        self.k8s_namespace = self.cni_args_dict.get('K8S_POD_NAMESPACE', '')
+        self.k8s_pod_name = self.cni_args_dict.get('K8S_POD_NAME', '')
 
-def get():
-    val, status = conn.root.get(params)
-    logger.info("server's get is {}".format(val))
-    print(val)
-    exit(status)
+        logging.info("CNI ARGS {}".format(self.cni_args_dict))
 
+        config_json = json.loads(stdin)
 
-def version():
-    val, status = json.dumps({'cniVersion': '0.3.1', "supportedVersions": [
-        "0.2.0", "0.3.0", "0.3.1"]}), 0
-    logger.info("server's version is {}".format(val))
-    print(val)
-    exit(status)
+        # expected parameters in the CNI specification:
+        self.cni_version = config_json["cniVersion"]
+        self.network_name = config_json["name"]
+        self.plugin = config_json["type"]
 
-
-def cni():
-    val = "Unsuported cni command!"
-    switcher = {
-        'ADD': add,
-        'DEL': delete,
-        'GET': get,
-        'VERSION': version
-    }
-
-    func = switcher.get(params.command, lambda: "Unsuported cni command")
-    if func:
-        func()
-    print(val)
-    exit(1)
-
-
-logger.info("CNI starting")
-params = CniParams(''.join(sys.stdin.readlines()))
-conn = rpyc.connect("localhost", 18861, config={"allow_all_attrs": True})
-cni()
+        # TODO: parse 'Arktos specific' CNI_ARGS
+        self.k8s_pod_tenant = self.cni_args_dict.get('K8S_POD_TENANT', '')
