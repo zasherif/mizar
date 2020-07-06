@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: mizar-daemon
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      job: mizar-daemon
+  template:
+    metadata:
+      labels:
+        job: mizar-daemon
+    spec:
+      hostPID: true
+      restartPolicy: Always
+      serviceAccountName: mizar-operator
+      hostNetwork: true
+      tolerations:
+        - operator: Exists
+          effect: NoSchedule
+      volumes:
+        - name: mizar
+          hostPath:
+            path: /var
+            type: Directory
+      initContainers:
+        - image: clu2docker/mizar:latest
+          name: node-init
+          command: [./node-init.sh]
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: mizar
+              mountPath: /home
+      containers:
+        - image: clu2docker/dropletd:latest
+          name: mizar-daemon
+          securityContext:
+            privileged: true
