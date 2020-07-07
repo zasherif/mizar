@@ -42,16 +42,6 @@ class k8sPodCreate(WorkflowTask):
         # annotations in self.param.body['metadata']['annotations']
 
         logger.info("name: {}".format(self.param.body['metadata']['name']))
-        logger.info("namespace: {}".format(
-            self.param.body['metadata']['namespace']))
-        logger.info("label: {}".format(self.param.body['metadata']['labels']))
-        logger.info("annotations: {}".format(
-            self.param.body['metadata']['annotations']))
-        logger.info("hostNetwork: {}".format(
-            self.param.spec.get('hostNetwork', 'False')))
-        logger.info("hostIP: {}".format(self.param.body['status']['hostIP']))
-        logger.info("phase: {}".format(self.param.body['status']['phase']))
-        logger.info("podIPs: {}".format(self.param.body['status']['podIPs']))
 
         # Get the droplet object given the hostIP
 
